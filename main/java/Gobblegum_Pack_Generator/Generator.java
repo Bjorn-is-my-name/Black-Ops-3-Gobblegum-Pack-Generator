@@ -7,8 +7,10 @@ import java.util.Objects;
 import java.util.Random;
 
 public class Generator extends JPanel {
-    private final int WIDTH = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
-    private final int HEIGHT = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+    private int WIDTH = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+    private int HEIGHT = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+    private int blackBorderXSize = 0;
+    private int blackBorderYSize = 0;
 
     private final ArrayList<Image> imagesAllGobblegums = new ArrayList<>();
     private final ArrayList<Image> imagesClassicGobblegums = new ArrayList<>();
@@ -28,20 +30,39 @@ public class Generator extends JPanel {
     private boolean timeBasedOnly = false;
     private boolean playerActivatedOnly = false;
     private boolean autoActivatedOnly = false;
-
-    private final Font textFont = new Font(Font.SANS_SERIF, Font.BOLD, WIDTH / 45);
-    private final Font smallerTextFont = new Font(Font.SANS_SERIF, Font.BOLD, WIDTH / 55);
     private final Color buttonSelectedColor = new Color(145, 228, 255);
 
     Generator(){
         setLayout(null);
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
+
+        calculateBlackBorders();
+        WIDTH -= blackBorderXSize * 2;
+        HEIGHT -= blackBorderYSize * 2;
+
         KeyboardListener.addKeyboardListener();
         getImages();
         createButtons();
         setAllButtonBounds();
         gobblegumSelector();
         drawClassic();
+    }
+
+    private void calculateBlackBorders(){
+        double basedOfScreenRatio = (double) 9/16;
+        double userScreenRatio = (double) WIDTH / HEIGHT;
+        int correctedSize;
+
+        if (basedOfScreenRatio != userScreenRatio) {
+            if (Math.abs(basedOfScreenRatio - userScreenRatio) > 1){
+                correctedSize = (int) Math.round((double) HEIGHT / 9 * 16);
+                blackBorderXSize = (WIDTH - correctedSize) / 2;
+            }
+            else if (Math.abs(basedOfScreenRatio - userScreenRatio) < 1){
+                correctedSize = (int) Math.round((double) WIDTH / 16 * 9);
+                blackBorderYSize = (HEIGHT - correctedSize) / 2;
+            }
+        }
     }
 
     private void getImages(){
@@ -114,7 +135,7 @@ public class Generator extends JPanel {
 
         int i = 0;
         for (String imageName: imageNamesClassicGobblegums){
-            Image image = ImageLoader.loadImages("/Gobblegums/Classic/" + imageName).getScaledInstance((int) ((double) 128 / 1536 * WIDTH), (int) ((double) 128 / 864 * HEIGHT), Image.SCALE_DEFAULT);
+            Image image = ImageLoader.loadImages("/Gobblegums/Classic/" + imageName).getScaledInstance((int) ((double) 160 / 1920 * WIDTH), (int) ((double) 160 / 1080 * HEIGHT), Image.SCALE_DEFAULT);
             imagesClassicGobblegums.add(image);
             imagesAllGobblegums.add(image);
             switch (i) {
@@ -128,7 +149,7 @@ public class Generator extends JPanel {
 
         i = 0;
         for (String imageName: imageNamesMegaGobblegums){
-            Image image = ImageLoader.loadImages("/Gobblegums/Mega/" + imageName).getScaledInstance((int) ((double) 128 / 1536 * WIDTH), (int) ((double) 128 / 864 * HEIGHT), Image.SCALE_DEFAULT);
+            Image image = ImageLoader.loadImages("/Gobblegums/Mega/" + imageName).getScaledInstance((int) ((double) 160 / 1920 * WIDTH), (int) ((double) 160 / 1080 * HEIGHT), Image.SCALE_DEFAULT);
             imagesMegaGobblegums.add(image);
             imagesAllGobblegums.add(image);
             switch (i) {
@@ -161,7 +182,7 @@ public class Generator extends JPanel {
         }
 
         for (int i = 0; i < 44; i++){
-            Image image = imagesMegaGobblegums.get(i).getScaledInstance((int) ((double) 92 / 1536 * WIDTH), (int) ((double) 92 / 864 * HEIGHT), Image.SCALE_DEFAULT);
+            Image image = imagesMegaGobblegums.get(i).getScaledInstance((int) ((double) 116 / 1920 * WIDTH), (int) ((double) 116 / 1080 * HEIGHT), Image.SCALE_DEFAULT);
 
             ImageIcon imageIcon = new ImageIcon(image);
             ImageIcon grayImageIcon = new ImageIcon(GrayFilter.createDisabledImage(image));
@@ -184,7 +205,7 @@ public class Generator extends JPanel {
         int xNumerator = 11;
         int yNumerator = 8;
         for (int number: classicGobblegumOrder){
-            buttonsClassicGobblegums.get(number).setBounds((int) (WIDTH * xNumerator/20 - (double) 64 / 1536 * WIDTH), (int) (HEIGHT * yNumerator/20 - (double) 64 / 864 * HEIGHT), (int) ((double) 128 / 1536 * WIDTH), (int) ((double) 128 / 864 * HEIGHT));
+            buttonsClassicGobblegums.get(number).setBounds((int) (WIDTH * xNumerator/20 - (double) 80 / 1920 * WIDTH) + blackBorderXSize, (int) (HEIGHT * yNumerator/20 - (double) 80 / 1080 * HEIGHT) + blackBorderYSize, (int) ((double) 160 / 1920 * WIDTH), (int) ((double) 160 / 1080 * HEIGHT));
             if (xNumerator == 19){
                 yNumerator += 3;
                 xNumerator = 11;
@@ -196,7 +217,7 @@ public class Generator extends JPanel {
         xNumerator = 8;
         yNumerator = 6;
         for (int number: megaGobblegumOrder) {
-            buttonsMegaGobblegums.get(number).setBounds(WIDTH * xNumerator/16, HEIGHT * yNumerator/24, (int) ((double) 92 / 1536 * WIDTH), (int) ((double) 92 / 864 * HEIGHT));
+            buttonsMegaGobblegums.get(number).setBounds(WIDTH * xNumerator/16 + blackBorderXSize, HEIGHT * yNumerator/24 + blackBorderYSize, (int) ((double) 116 / 1920 * WIDTH), (int) ((double) 116 / 1080 * HEIGHT));
             if (xNumerator == 15){
                 yNumerator += 3;
                 xNumerator = 8;
@@ -235,12 +256,28 @@ public class Generator extends JPanel {
         }
     }
 
+    private void setButtonFont(JButton jButton){
+        jButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 50));
+        int i = 0;
+        while (jButton.getPreferredSize().width > jButton.getSize().width && i < 50){
+            jButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 50 - i));
+            i++;
+        }
+    }
+
     private void gobblegumSelector(){
         JButton classic = new JButton("Classic");
         JButton mega = new JButton("Mega");
+        JButton classicOnly = new JButton("Classic Only");
+        JButton megaOnly = new JButton("Mega Only");
+        JButton roundBased = new JButton("Round based");
+        JButton timeBased = new JButton("Time based");
+        JButton autoActivated = new JButton("Auto activated");
+        JButton playerActivated = new JButton("Player activated");
+        JButton generatePackButton = new JButton("Generate");
 
-        classic.setFont(textFont);
-        classic.setBounds((int) (WIDTH * 5/8 - (double) 90 / 1536 * WIDTH), HEIGHT / 8, (int) ((double) 180 / 1536 * WIDTH), (int) ((double) 80 / 864 * HEIGHT));
+        classic.setBounds((int) (WIDTH * 5/8 - (double) 90 / 1920 * WIDTH)  + blackBorderXSize, HEIGHT / 8 + blackBorderYSize, (int) ((double) 180 / 1920 * WIDTH), (int) ((double) 80 / 1080 * HEIGHT));
+        setButtonFont(classic);
         classic.setBackground(buttonSelectedColor);
         classic.addActionListener(e -> {
             classic.setBackground(buttonSelectedColor);
@@ -252,8 +289,8 @@ public class Generator extends JPanel {
         classic.setFocusPainted(false);
         add(classic);
 
-        mega.setFont(textFont);
-        mega.setBounds((int) (WIDTH * 7/8 - (double) 90 / 1536 * WIDTH), HEIGHT / 8, (int) ((double) 180 / 1536 * WIDTH), (int) ((double) 80 / 864 * HEIGHT));
+        mega.setBounds((int) (WIDTH * 7/8 - (double) 90 / 1920 * WIDTH) + blackBorderXSize, HEIGHT / 8 + blackBorderYSize, (int) ((double) 180 / 1920 * WIDTH), (int) ((double) 80 / 1080 * HEIGHT));
+        setButtonFont(mega);
         mega.addActionListener(e -> {
             mega.setBackground(buttonSelectedColor);
             classic.setBackground(UIManager.getColor("Button.background"));
@@ -264,11 +301,8 @@ public class Generator extends JPanel {
         mega.setFocusPainted(false);
         add(mega);
 
-        JButton classicOnly = new JButton("Classic Only");
-        JButton megaOnly = new JButton("Mega Only");
-
-        classicOnly.setFont(textFont);
-        classicOnly.setBounds((int) (WIDTH / 4 - (double) 325 / 1536 * WIDTH), (int) (HEIGHT / 2 + (double) 50 / 864 * HEIGHT), (int) ((double) 300 / 1536 * WIDTH), (int) ((double) 80 / 864 * HEIGHT));
+        classicOnly.setBounds((int) (WIDTH / 4 - (double) 325 / 1920 * WIDTH) + blackBorderXSize, (int) (HEIGHT / 2 + (double) 50 / 1080 * HEIGHT) + blackBorderYSize, (int) ((double) 300 / 1920 * WIDTH), (int) ((double) 80 / 1080 * HEIGHT));
+        setButtonFont(classicOnly);
         classicOnly.addActionListener(e -> {
             if (classicGobblegumOnly){
                 classicGobblegumOnly = false;
@@ -287,8 +321,8 @@ public class Generator extends JPanel {
         classicOnly.setFocusPainted(false);
         add(classicOnly);
 
-        megaOnly.setFont(textFont);
-        megaOnly.setBounds((int) (WIDTH / 4 + (double) 25 / 1536 * WIDTH), (int) (HEIGHT / 2 + (double) 50 / 864 * HEIGHT), (int) ((double) 300 / 1536 * WIDTH), (int) ((double) 80 / 864 * HEIGHT));
+        megaOnly.setBounds((int) (WIDTH / 4 + (double) 25 / 1920 * WIDTH) + blackBorderXSize, (int) (HEIGHT / 2 + (double) 50 / 1080 * HEIGHT) + blackBorderYSize, (int) ((double) 300 / 1920 * WIDTH), (int) ((double) 80 / 1080 * HEIGHT));
+        setButtonFont(megaOnly);
         megaOnly.addActionListener(e -> {
             if (megaGobblegumOnly){
                 megaGobblegumOnly = false;
@@ -307,13 +341,8 @@ public class Generator extends JPanel {
         megaOnly.setFocusPainted(false);
         add(megaOnly);
 
-        JButton roundBased = new JButton("Round based");
-        JButton timeBased = new JButton("Time based");
-        JButton autoActivated = new JButton("Auto activated");
-        JButton playerActivated = new JButton("Player activated");
-
-        roundBased.setFont(smallerTextFont);
-        roundBased.setBounds((int) (WIDTH / 4 - (double) 325 / 1536 * WIDTH), (int) (HEIGHT / 2 + (double) 200 / 864 * HEIGHT), (int) ((double) 300 / 1536 * WIDTH), (int) ((double) 80 / 864 * HEIGHT));
+        roundBased.setBounds((int) (WIDTH / 4 - (double) 325 / 1920 * WIDTH) + blackBorderXSize, (int) (HEIGHT / 2 + (double) 200 / 1080 * HEIGHT) + blackBorderYSize, (int) ((double) 300 / 1920 * WIDTH), (int) ((double) 80 / 1080 * HEIGHT));
+        setButtonFont(roundBased);
         roundBased.addActionListener(e -> {
             if (roundBasedOnly){
                 roundBasedOnly = false;
@@ -327,8 +356,8 @@ public class Generator extends JPanel {
         roundBased.setFocusPainted(false);
         add(roundBased);
 
-        timeBased.setFont(smallerTextFont);
-        timeBased.setBounds((int) (WIDTH / 4 + (double) 25 / 1536 * WIDTH), (int) (HEIGHT / 2 + (double) 200 / 864 * HEIGHT), (int) ((double) 300 / 1536 * WIDTH), (int) ((double) 80 / 864 * HEIGHT));
+        timeBased.setBounds((int) (WIDTH / 4 + (double) 25 / 1920 * WIDTH) + blackBorderXSize, (int) (HEIGHT / 2 + (double) 200 / 1080 * HEIGHT) + blackBorderYSize, (int) ((double) 300 / 1920 * WIDTH), (int) ((double) 80 / 1080 * HEIGHT));
+        setButtonFont(timeBased);
         timeBased.addActionListener(e -> {
             if (timeBasedOnly){
             timeBasedOnly = false;
@@ -342,8 +371,8 @@ public class Generator extends JPanel {
         timeBased.setFocusPainted(false);
         add(timeBased);
 
-        autoActivated.setFont(smallerTextFont);
-        autoActivated.setBounds((int) (WIDTH / 4 - (double) 325 / 1536 * WIDTH), (int) (HEIGHT / 2 + (double) 300 / 864 * HEIGHT), (int) ((double) 300 / 1536 * WIDTH), (int) ((double) 80 / 864 * HEIGHT));
+        autoActivated.setBounds((int) (WIDTH / 4 - (double) 325 / 1920 * WIDTH) + blackBorderXSize, (int) (HEIGHT / 2 + (double) 300 / 1080 * HEIGHT) + blackBorderYSize, (int) ((double) 300 / 1920 * WIDTH), (int) ((double) 80 / 1080 * HEIGHT));
+        setButtonFont(autoActivated);
         autoActivated.addActionListener(e -> {
             if (autoActivatedOnly){
                 autoActivatedOnly = false;
@@ -357,8 +386,8 @@ public class Generator extends JPanel {
         autoActivated.setFocusPainted(false);
         add(autoActivated);
 
-        playerActivated.setFont(smallerTextFont);
-        playerActivated.setBounds((int) (WIDTH / 4 + (double) 25 / 1536 * WIDTH), (int) (HEIGHT / 2 + (double) 300 / 864 * HEIGHT), (int) ((double) 300 / 1536 * WIDTH), (int) ((double) 80 / 864 * HEIGHT));
+        playerActivated.setBounds((int) (WIDTH / 4 + (double) 25 / 1920 * WIDTH) + blackBorderXSize, (int) (HEIGHT / 2 + (double) 300 / 1080 * HEIGHT) + blackBorderYSize, (int) ((double) 300 / 1920 * WIDTH), (int) ((double) 80 / 1080 * HEIGHT));
+        setButtonFont(playerActivated);
         playerActivated.addActionListener(e -> {
             if (playerActivatedOnly){
                 playerActivatedOnly = false;
@@ -372,9 +401,8 @@ public class Generator extends JPanel {
         playerActivated.setFocusPainted(false);
         add(playerActivated);
 
-        JButton generatePackButton = new JButton("Generate");
-        generatePackButton.setFont(textFont);
-        generatePackButton.setBounds((int) (WIDTH / 4 - (double) 120 / 1536 * WIDTH), HEIGHT / 8, (int) ((double) 240 / 1536 * WIDTH), (int) ((double) 80 / 864 * HEIGHT));
+        generatePackButton.setBounds((int) (WIDTH / 4 - (double) 120 / 1920 * WIDTH) + blackBorderXSize, HEIGHT / 8 + blackBorderYSize, (int) ((double) 240 / 1920 * WIDTH), (int) ((double) 80 / 1080 * HEIGHT));
+        setButtonFont(generatePackButton);
         generatePackButton.addActionListener(e -> generateGobblegumPack());
         generatePackButton.setFocusPainted(false);
         add(generatePackButton);
@@ -488,7 +516,7 @@ public class Generator extends JPanel {
 
         for (int i = 0; i < randomGobblegums.size(); i++){
             JButton button = new JButton(new ImageIcon(randomGobblegums.get(i)));
-            button.setBounds((int) (WIDTH * (2 * i)/20 + (double) 10 / 1536 * WIDTH), (int) (HEIGHT * 8/20 - (double) 64 / 864 * HEIGHT), (int) ((double) 128 / 1536 * WIDTH), (int) ((double) 128 / 864 * HEIGHT));
+            button.setBounds((int) (WIDTH * (2 * i)/20 + (double) (50 - (i + 1) * 15) / 1920 * WIDTH) + blackBorderXSize, (int) (HEIGHT * 8/20 - (double) 80 / 1080 * HEIGHT) + blackBorderYSize, (int) ((double) 160 / 1920 * WIDTH), (int) ((double) 160 / 1080 * HEIGHT));
             button.setBackground(null);
             button.setBorder(null);
             button.setEnabled(false);
@@ -502,5 +530,9 @@ public class Generator extends JPanel {
     public void paintComponent(Graphics g){
         super.paintComponent(g);
         setBackground(Color.BLACK);
+        g.setColor(UIManager.getColor("Button.background"));
+        g.fillRect((int) ((double) 20 / 1920 * WIDTH) + blackBorderXSize, (int) ((double) 337 / 1080 * HEIGHT) + blackBorderYSize, (int) ((double) 898 / 1920 * WIDTH), (int) ((double) 190 / 1080 * HEIGHT));
+        g.setColor(Color.BLACK);
+        g.fillRect((int) ((double) 30 / 1920 * WIDTH) + blackBorderXSize, (int) ((double) 347 / 1080 * HEIGHT) + blackBorderYSize, (int) ((double) 878 / 1920 * WIDTH), (int) ((double) 170 / 1080 * HEIGHT));
     }
 }
